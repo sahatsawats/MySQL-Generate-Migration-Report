@@ -3,7 +3,6 @@ package models
 type Configurations struct {
 	SOURCE_DATABASE	SourceDatabaseConfigurations
 	DESTINATION_DATABASE DestinationDatabaseConfiguration
-	LOGGING	LOGGER
 }
 
 
