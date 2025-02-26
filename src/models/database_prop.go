@@ -5,7 +5,6 @@ type DatabaseProperties struct {
 	Port int
 	User string
 	Password string
-	DSN string
 }
 
 
