@@ -36,6 +36,8 @@ func readingConfigurationFile(baseDir string) *models.Configurations {
 
 
 func main() {
+	var sourceDB models.DatabaseProperties
+	var destDB models.DatabaseProperties
 	// Find the current executaion directory 
 	executionDirectory, err := os.Executable()
 	LOG_FILE := filepath.Join(filepath.Dir(executionDirectory), "log", "system.log")
@@ -51,7 +53,24 @@ func main() {
 	// log date-time, filename, line number
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 
+	// Read configuration file
 	config := readingConfigurationFile(executionDirectory)
+
+	log.Println("Reading databases configuration...")
+	sourceDB = models.DatabaseProperties{
+		Host: config.SOURCE_DATABASE.SOURCE_HOST,
+		Port: config.SOURCE_DATABASE.SOURCE_PORT,
+		User: config.SOURCE_DATABASE.SOURCE_USER,
+		Password: config.SOURCE_DATABASE.SOURCE_PASSWORD,
+	}
+	destDB = models.DatabaseProperties{
+		Host: config.DESTINATION_DATABASE.DEST_HOST,
+		Port: config.DESTINATION_DATABASE.DEST_PORT,
+		User: config.DESTINATION_DATABASE.DEST_USER,
+		Password: config.DESTINATION_DATABASE.DEST_PASSWORD,
+	}
+	log.Printf("Source database properties: %s:%d \n", sourceDB.Host, sourceDB.Port)
+	log.Printf("Destination database properties: %s:%d \n", destDB.Host, destDB.Port)
 
 	
 }
