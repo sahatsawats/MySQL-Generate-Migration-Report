@@ -38,6 +38,7 @@ func readingConfigurationFile(baseDir string) *models.Configurations {
 func main() {
 	var sourceDB models.DatabaseProperties
 	var destDB models.DatabaseProperties
+	var config *models.Configurations
 	// Find the current executaion directory 
 	executionDirectory, err := os.Executable()
 	LOG_FILE := filepath.Join(filepath.Dir(executionDirectory), "log", "system.log")
@@ -54,8 +55,9 @@ func main() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 
 	// Read configuration file
-	config := readingConfigurationFile(executionDirectory)
+	config = readingConfigurationFile(executionDirectory)
 
+	// Mapping database properties to source and destination variable
 	log.Println("Reading databases configuration...")
 	sourceDB = models.DatabaseProperties{
 		Host: config.SOURCE_DATABASE.SOURCE_HOST,
@@ -63,12 +65,25 @@ func main() {
 		User: config.SOURCE_DATABASE.SOURCE_USER,
 		Password: config.SOURCE_DATABASE.SOURCE_PASSWORD,
 	}
+	// Validate database properties
+	err = sourceDB.CheckValidDatabaseProperties()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+
 	destDB = models.DatabaseProperties{
 		Host: config.DESTINATION_DATABASE.DEST_HOST,
 		Port: config.DESTINATION_DATABASE.DEST_PORT,
 		User: config.DESTINATION_DATABASE.DEST_USER,
 		Password: config.DESTINATION_DATABASE.DEST_PASSWORD,
 	}
+	// Validate database properties
+	err = destDB.CheckValidDatabaseProperties()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	log.Printf("Source database properties: %s:%d \n", sourceDB.Host, sourceDB.Port)
 	log.Printf("Destination database properties: %s:%d \n", destDB.Host, destDB.Port)
 
