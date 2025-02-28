@@ -1,6 +1,8 @@
 package models
-import "errors"
-
+import (
+	"errors"
+	"fmt"
+)
 type DatabaseProperties struct {
 	Host string
 	Port int
@@ -16,4 +18,8 @@ func (c DatabaseProperties) CheckValidDatabaseProperties() error {
 		return errors.New("user variable cannot be empty")
 	}
 	return nil
+}
+
+func (c DatabaseProperties) GetDSNConnection() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)", c.User, c.Password, c.Host, c.Port,)
 }

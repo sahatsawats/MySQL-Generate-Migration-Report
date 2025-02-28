@@ -36,8 +36,8 @@ func readingConfigurationFile(baseDir string) *models.Configurations {
 
 
 func main() {
-	var sourceDB models.DatabaseProperties
-	var destDB models.DatabaseProperties
+	var sourceDB *models.DatabaseProperties
+	var destDB *models.DatabaseProperties
 	var config *models.Configurations
 	// Find the current executaion directory 
 	executionDirectory, err := os.Executable()
@@ -59,7 +59,7 @@ func main() {
 
 	// Mapping database properties to source and destination variable
 	log.Println("Reading databases configuration...")
-	sourceDB = models.DatabaseProperties{
+	sourceDB = &models.DatabaseProperties{
 		Host: config.SOURCE_DATABASE.SOURCE_HOST,
 		Port: config.SOURCE_DATABASE.SOURCE_PORT,
 		User: config.SOURCE_DATABASE.SOURCE_USER,
@@ -72,7 +72,7 @@ func main() {
 	}
 
 
-	destDB = models.DatabaseProperties{
+	destDB = &models.DatabaseProperties{
 		Host: config.DESTINATION_DATABASE.DEST_HOST,
 		Port: config.DESTINATION_DATABASE.DEST_PORT,
 		User: config.DESTINATION_DATABASE.DEST_USER,
