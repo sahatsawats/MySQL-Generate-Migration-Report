@@ -25,13 +25,47 @@ func InitDB(DSN string) (*sql.DB, error) {
 	return db, nil
 }
 
-func GenerateDatabaseReport(conn *sql.DB, host string) (models.DatabaseReport, error) {
+func CloseDB(conn *sql.DB) (error) {
+	err := conn.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close a database: %v", err)
+	}
+
+	return nil
+}
+
+func GenerateDatabaseReport(conn *sql.DB, HOST string) (models.DatabaseReport, error) {
+	var databaseReport models.DatabaseReport
+	var host string = HOST
+	var numberOfDatabase int
+
 
 	// Query a list of schema within instance
 	databases, err := getListOfDatabaseName(conn)
+	if err != nil {
+		return databaseReport, err
+	}
+
+	// Get a total number of database
+	numberOfDatabase, err = getTotalDatabases(conn)
+	if err != nil {
+		return databaseReport, err
+	}
+
+	// Get a list of database from mysql instance
+	listOfDatabase, err := getDatabaseConstruct(conn, databases)
+	if err != nil {
+		return databaseReport, err
+	}
+
+	databaseReport = models.DatabaseReport{
+		Host: host,
+		NumberOfDatabase: numberOfDatabase,
+		ListOfDatabase: listOfDatabase,
+	}
 
 
-	return nil
+	return databaseReport, nil
 }
 
 
@@ -43,14 +77,14 @@ func getListOfDatabaseName(conn *sql.DB) ([]string, error) {
 
 	rows, err := conn.Query(queryStatement)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot query database name with errors: ", err)
+		return nil, fmt.Errorf("cannot query database name with errors: %v", err)
 	}
 
 	for rows.Next() {
 		var dbName string
 		err = rows.Scan(&dbName)
 		if err != nil {
-			return nil, fmt.Errorf("Cannot scan database_name from query result with error: ", err)
+			return nil, fmt.Errorf("cannot scan database_name from query result with error: %v", err)
 		}
 
 		listOfDatabases = append(listOfDatabases, dbName)
@@ -142,11 +176,11 @@ func getListTableNameFromDatabase(conn *sql.DB, database *string) ([]string, int
 	var numberOfTable int = 0
 
 	// Query statement to query list of tables.
-	queryStatement := fmt.Sprintf("SELECT table_name FROM information_schema.tables WHERE table_schema = '%s'", database)
+	queryStatement := fmt.Sprintf("SELECT table_name FROM information_schema.tables WHERE table_schema = '%s'", *database)
 	rows, err := conn.Query(queryStatement)
 		
 	if err != nil {
-		return nil, 0, fmt.Errorf("Failed to execute query: %v", err)
+		return nil, 0, fmt.Errorf("failed to execute query: %v", err)
 	}
 
 	// Loop through query results. This loop will used for get all of table name.
@@ -171,10 +205,10 @@ Return a integer of rows and error from query.
 func getRowsFromTable(conn *sql.DB, databaseName *string, tableName *string) (int, error) {
 	var rows int // Hold a total rows of given table from query result.
 
-	queryStatement := fmt.Sprintf("SELECT COUNT(*) FROM %s.%s", databaseName, tableName)
+	queryStatement := fmt.Sprintf("SELECT COUNT(*) FROM %s.%s", *databaseName, *tableName)
 	err := conn.QueryRow(queryStatement, &rows)
 	if err != nil {
-		return 0, fmt.Errorf("Failed to query total rows of %s : %v", tableName, err)
+		return 0, fmt.Errorf("failed to query total rows of %s : %v", *tableName, err)
 	}
 
 	return rows, nil
@@ -187,10 +221,10 @@ Return a float32 of size and error from query.
 func getSizeOfTable(conn *sql.DB, databaseName *string, tableName *string) (float32, error) {
 	var size float32 // Hold a total size of given table from query resutls.
 
-	queryStatement := fmt.Sprintf("SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS table_size_mb FROM information_schema.tables WHERE table_schema = '%s' AND table_name = '%s'", databaseName, tableName)
+	queryStatement := fmt.Sprintf("SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS table_size_mb FROM information_schema.tables WHERE table_schema = '%s' AND table_name = '%s'", *databaseName, *tableName)
 	err := conn.QueryRow(queryStatement, &size)
 	if err != nil {
-		return 0.00, fmt.Errorf("Failed to query size of %s : %v", tableName, err)
+		return 0.00, fmt.Errorf("failed to query size of %s : %v", *tableName, err)
 	}
 
 	return size, nil
@@ -203,11 +237,11 @@ Return a float32 of size and error from query.
 func getListOfIndexes(conn *sql.DB, databaseName *string, tableName *string) ([]string, error) {
 	var listOfIndexes []string // Hold list of index name within table from query results
 
-	queryStatement := fmt.Sprintf("SELECT index_name FROM information_schema.statistics WHERE table_schema = '%s' AND table_name = '%s'", databaseName, tableName)
+	queryStatement := fmt.Sprintf("SELECT index_name FROM information_schema.statistics WHERE table_schema = '%s' AND table_name = '%s'", *databaseName, *tableName)
 	rows, err := conn.Query(queryStatement)
 	// Check a error from establish query command
 	if err != nil {
-		return nil, fmt.Errorf("Failed to query indexes from table %s : %v", tableName, err)
+		return nil, fmt.Errorf("failed to query indexes from table %s : %v", *tableName, err)
 	}
 
 	for rows.Next() {
@@ -216,7 +250,7 @@ func getListOfIndexes(conn *sql.DB, databaseName *string, tableName *string) ([]
 		err := rows.Scan(&indexName)
 		// Check a error from map a query results to variable
 		if err != nil {
-			return nil, fmt.Errorf("Failed to scan query results from indexes: %v", err)
+			return nil, fmt.Errorf("failed to scan query results from indexes: %v", err)
 		}
 
 		// Append a results to list of indexes name
