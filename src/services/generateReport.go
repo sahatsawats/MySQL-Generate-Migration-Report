@@ -3,7 +3,6 @@ package services
 import (
 	"database/sql"
 	"fmt"
-
 	"github.com/sahatsawats/MySQL-Generate-Migration-Report/src/models"
 )
 
