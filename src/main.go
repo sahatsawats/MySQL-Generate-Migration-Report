@@ -12,8 +12,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+/*
+Reading a configuration file from execution path from given path (from execution path).
+Return a configuration models
+*/
 func readingConfigurationFile(baseDir string) *models.Configurations {
-
 
 	// Joining a current execution directory with configuration directory plus file name
 	configFile := filepath.Join(filepath.Dir(baseDir), "conf", "config.yaml")
@@ -33,6 +36,7 @@ func readingConfigurationFile(baseDir string) *models.Configurations {
 
 	return &conf
 }
+
 
 
 func main() {
@@ -86,6 +90,8 @@ func main() {
 
 	log.Printf("Source database properties: %s:%d \n", sourceDB.Host, sourceDB.Port)
 	log.Printf("Destination database properties: %s:%d \n", destDB.Host, destDB.Port)
+
+
 
 	
 }
